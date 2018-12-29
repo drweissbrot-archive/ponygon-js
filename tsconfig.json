@@ -1,0 +1,38 @@
+{
+	"include": [
+		"app.ts",
+		"./src/**/*.ts",
+		"./types/**/*.d.ts"
+	],
+
+	"exclude": [
+		"node_modules", "@types", "tmp", "build", "dist"
+	],
+
+	"compilerOptions": {
+		"allowJs": false,
+		"allowSyntheticDefaultImports": true,
+		"downlevelIteration": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"target": "es5",
+		"lib": ["es6", "es2017", "es2018", "dom", "dom.iterable", "scripthost"],
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"pretty": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strictFunctionTypes": false,
+		"strictNullChecks": true,
+		"typeRoots": ["node_modules/@types"],
+
+		"baseUrl": "./src",
+		"paths": {
+			"helpers": [ "helpers/helpers" ]
+		}
+	}
+}

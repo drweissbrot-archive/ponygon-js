@@ -1,0 +1,24 @@
+{
+	"plugins": [
+		"@babel/plugin-transform-typescript",
+		"@babel/plugin-proposal-optional-catch-binding",
+
+		[ "module-resolver", {
+			"root": [ "./src" ],
+			"alias": {
+				"helpers": "./src/helpers/helpers"
+			}
+		} ]
+	],
+
+	"presets": [
+		[
+			"@babel/preset-env",
+			{
+				"targets": {
+					"node": "current"
+				}
+			}
+		]
+	]
+}
