@@ -7,7 +7,11 @@ class Connection {
 	}
 
 	on(event, handler) {
-		this.socket.on(event, handler)
+		this.socket.on(event, (...data) => {
+			console.info('event', event, ...data)
+
+			handler(...data)
+		})
 
 		return this
 	}

@@ -1,4 +1,4 @@
-import pg from '../pg'
+import pg from 'pg'
 import GameList from '../Games/List'
 import { info } from 'helpers'
 

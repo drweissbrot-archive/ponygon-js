@@ -38,7 +38,7 @@
 
 		<div class="game-list">
 			<div class="game">
-				<h3>Werwolf</h3>
+				<h3>werewolves</h3>
 
 				<a href="#" @click.prevent="startGame('werewolves')">
 					Play

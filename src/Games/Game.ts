@@ -1,4 +1,5 @@
 import Lobby from '../Lobby'
+import GameData from './GameData'
 
 export default abstract class Game {
 	protected lobby: Lobby
@@ -11,13 +12,11 @@ export default abstract class Game {
 		this.emitStarting()
 
 		for (const player of this.lobby.players) {
-			player.gameData = this.initialGameData
+			player.gameData = this.initialGameData()
 		}
 	}
 
-	protected get initialGameData() {
-		return {}
-	}
+	protected abstract initialGameData()
 
 	protected emitStarting() : this {
 		this.lobby.emit('game starting', {
@@ -25,5 +24,11 @@ export default abstract class Game {
 		})
 
 		return this
+	}
+
+	protected end() : void {
+		for (const player of this.lobby.players) {
+			player.gameData = new GameData()
+		}
 	}
 }

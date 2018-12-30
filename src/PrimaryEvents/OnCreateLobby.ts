@@ -1,4 +1,4 @@
-import pg from '../pg'
+import pg from 'pg'
 import SocketIoResolver from '../Contracts/SocketIoResolver'
 import { info } from 'helpers'
 

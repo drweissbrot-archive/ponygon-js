@@ -6,7 +6,8 @@
 		[ "module-resolver", {
 			"root": [ "./src" ],
 			"alias": {
-				"helpers": "./src/helpers/helpers"
+				"helpers": "./src/helpers/helpers",
+				"pg": "./src/pg"
 			}
 		} ]
 	],

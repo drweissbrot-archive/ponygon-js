@@ -3,6 +3,7 @@ import crypto from 'crypto'
 
 import AuthInfo from './Contracts/AuthInfo'
 import Lobby from './Lobby'
+import GameData from './Games/GameData'
 
 import { info } from 'helpers'
 
@@ -17,13 +18,14 @@ export default class Player {
 
 	public secret: string
 
-	public gameData: any
+	public gameData: GameData
 
 	public constructor(id: string, name: string, socket: Socket) {
 		this.id = id
 		this.name = name
 		this.secret = crypto.randomBytes(16).toString('hex')
 		this.socket = socket
+		this.gameData = new GameData()
 
 		info('P+', this.id)
 	}
@@ -42,15 +44,32 @@ export default class Player {
 		return `${this.id};${this.secret}`
 	}
 
-	public forPublic() : object {
-		return {
+	public get forPublic() : object {
+		let data = {
+			id: this.id,
 			name: this.name,
 			leader: this.lobby.leader === this,
 		}
+
+		return (this.gameData)
+			? Object.assign(data, this.gameData.forPublic)
+			: data
 	}
 
-	public emit(event, data) : this {
+	public emit(event: string, data?: any) : this {
 		this.socket.emit(event, data)
+
+		return this
+	}
+
+	public on(event: string, handler?: any) : this {
+		this.socket.on(event, handler)
+
+		return this
+	}
+
+	public once(event: string, handler?: any) : this {
+		this.socket.once(event, handler)
 
 		return this
 	}

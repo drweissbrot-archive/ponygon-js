@@ -9,7 +9,7 @@ export default class Lobby {
 
 	public leader: Player
 
-	public players: Array<Player>
+	public players: Player[]
 
 	public game?: Game
 
@@ -23,8 +23,8 @@ export default class Lobby {
 		info('L+', this.id)
 	}
 
-	public get allPlayers() : Array<object> {
-		return this.players.map((player) => player.forPublic())
+	public get allPlayers() : object[] {
+		return this.players.map((player) => player.forPublic)
 	}
 
 	public addPlayer(player: Player) : this {

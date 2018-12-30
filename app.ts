@@ -2,7 +2,7 @@ import express from 'express'
 import http from 'http'
 import socketIo from 'socket.io'
 import BodyParser from 'body-parser'
-import pg from './src/pg'
+import pg from 'pg'
 import { info } from 'helpers'
 
 const app = express()
