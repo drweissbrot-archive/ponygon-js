@@ -12,4 +12,18 @@ export default class GameData extends BaseGameData {
 			'mayor',
 		]
 	}
+
+	public get forFinalScoreboard() : object {
+		const forPublic = this.forPublic
+
+		let data = {
+			role: this.get('role'),
+		}
+
+		for (const property in forPublic) {
+			data[property] = forPublic[property]
+		}
+
+		return data
+	}
 }

@@ -34,6 +34,14 @@ export default class Werewolves extends Game {
 
 	protected victims: VictimsObject
 
+	protected mayor?: Player
+
+	protected winners?: Player[]
+
+	protected losers?: Player[]
+
+	protected winner?: string
+
 	public constructor(lobby: Lobby) {
 		super(lobby)
 
@@ -56,10 +64,22 @@ export default class Werewolves extends Game {
 		after(5, () => {
 			this.nextRound()
 		})
+
+		// TODO Remove
+		for (const player of this.lobby.players) {
+			console.log(player.forFinalScoreboard)
+		}
 	}
 
-	public get name() {
-		return 'werewolves'
+	public get meta() {
+		return {
+			name: 'werewolves',
+			allowJoiningWhileRunning: false,
+		}
+	}
+
+	protected get alivePlayers() {
+		return this.lobby.players.filter((player) => ! player.gameData.get('dead'))
 	}
 
 	protected initialGameData() {
@@ -74,6 +94,8 @@ export default class Werewolves extends Game {
 		await this.runNight()
 
 		const deaths = this.handleDeaths()
+
+		if (this.matchClinched()) return
 
 		this.runDay(deaths)
 	}
@@ -160,13 +182,13 @@ export default class Werewolves extends Game {
 		this.phase.part = 1
 
 		await this.runNightPartOne()
-		this.increasePart()
+		this.increasePart().emitPhase()
 
 		await this.runNightPartTwo()
-		this.increasePart()
+		this.increasePart().emitPhase()
 
 		await this.runNightPartThree()
-		this.increasePart()
+		this.increasePart().emitPhase()
 
 		await this.runNightPartFour()
 	}
@@ -252,6 +274,7 @@ export default class Werewolves extends Game {
 
 		let choices = this.getVotingChoicesBase()
 
+		// TODO only a single promise should be returned (similar to mayor election)
 		for (const werewolf of werewolves) {
 			promises.push(new Promise((resolve, reject) => {
 				werewolf.emit('action', {
@@ -275,7 +298,7 @@ export default class Werewolves extends Game {
 					choicesForTarget.push(werewolf)
 
 					// decide if the victim has enough votes
-					const victim = this.determineVictim(choices, minVotesForVictim)
+					const victim = this.determineVotingWinner(choices, minVotesForVictim)
 					if (! victim) return
 
 					resolve()
@@ -295,25 +318,30 @@ export default class Werewolves extends Game {
 		return Promise.all(promises)
 	}
 
-	protected runNightPartFour() {
+	protected runNightPartFour() : Promise<any> {
 		// TODO witch
+
+		return new Promise((resolve, reject) => {
+			after(3, resolve)
+		})
 	}
 
 	protected async runDay(deaths: Player[]) {
 		this.phase.night = false
 		this.phase.part = 1
+		this.emitPhase()
 
 		// deaths
 		await this.runDayPartOne(deaths)
-		this.increasePart()
+		this.increasePart().emitPhase()
 
 		// mayor
 		await this.runDayPartTwo()
-		this.increasePart()
+		this.increasePart().emitPhase()
 
 		// discussion/accusations
 		await this.runDayPartThree()
-		this.increasePart()
+		this.increasePart().emitPhase()
 
 		// voting
 		await this.runDayPartFour()
@@ -323,7 +351,7 @@ export default class Werewolves extends Game {
 		this.lobby.emit('action', {
 			view: 'daytime deaths',
 			data: {
-				players: deaths.map((player) => player.forPublic),
+				deaths: deaths.map((player) => player.forPublic),
 			},
 		})
 
@@ -332,22 +360,65 @@ export default class Werewolves extends Game {
 		})
 	}
 
-	// TODO HIER FORTFAHREN
 	protected runDayPartTwo() : Promise<any> {
+		const minVotesToWin = this.getMinVoteCount(this.lobby.players.length)
 		let votes = this.getVotingChoicesBase()
+		let promises: Promise<any>[] = []
 
 		this.lobby.emit('action', { view: 'daytime mayor' })
 
-		return Promise.all([])
+		return new Promise((resolve, reject) => {
+			for (const player of this.lobby.players) {
+				player.on('vote for mayor', ({ player: votedFor }: { player: string }) => {
+					const target = this.getPlayerById(votedFor)
+					if (! target) return
+
+					// remove previous choice this player made
+					votes.forEach((voters, targetId) => {
+						votes.set(targetId, voters.filter((voter) => voter !== player))
+					})
+
+					// apply current choice this player made
+					let choicesForTarget = votes.get(target.id)
+					if (! choicesForTarget) return
+
+					choicesForTarget.push(player)
+
+					// decide if the player has enough votes
+					const mayor = this.determineVotingWinner(votes, minVotesToWin)
+					if (! mayor) return
+
+					resolve()
+
+					this.mayor = mayor
+
+					this.lobby.emit('log', `${mayor.name} was elected mayor.`)
+
+					// for (const player of this.lobby.players) {
+					// 	player.emit('log', `${mayor.name} was elected mayor.`)
+					// 	.emit('action', {
+					// 		view: 'daytime mayor-result',
+					// 		data: { mayor: mayor.forPublic },
+					// 	})
+					// }
+				})
+			}
+		})
 	}
 
 	protected runDayPartThree() : Promise<any> {
-		// TODO
-		return Promise.all([])
+		this.lobby.emit('action', { view: 'daytime accusations' })
+
+		return new Promise((resolve, reject) => {
+			if (! this.mayor) return resolve()
+
+			this.mayor.once('mayor go to voting', resolve)
+		})
 	}
 
 	protected runDayPartFour() : Promise<any> {
-		// TODO
+		this.lobby.emit('log', 'voting would show now')
+
 		return Promise.all([])
 	}
 
@@ -400,7 +471,7 @@ export default class Werewolves extends Game {
 		return Math.ceil(total / 1.99) // we always need more than 50%
 	}
 
-	protected determineVictim(choices: Map<string, Player[]>, minVotesForVictim: number) : Player | false {
+	protected determineVotingWinner(choices: Map<string, Player[]>, minVotesForVictim: number) : Player | false {
 		for (const target of choices.entries()) {
 			if (target[1].length >= minVotesForVictim) {
 				return this.getPlayerById(target[0]) || false
@@ -424,14 +495,76 @@ export default class Werewolves extends Game {
 
 		if (this.victims.werewolves) players.push(this.victims.werewolves)
 
+		if (this.inLove && (players.includes(this.inLove[0]) || players.includes(this.inLove[1]))) {
+			players = players.concat(this.inLove)
+		}
+
 		players = _(players.concat(this.victims.witches)).uniq()
 
 		for (const player of players) {
 			player.gameData.set('dead', true)
+
+			if (player.gameData.get('inLoveWith')) {
+				player.gameData.get('inLoveWith').gameData.set('dead', true)
+			}
+		}
+
+		for (const role in this.playersByRole) {
+			const playersOfRole = this.playersByRole.get(role)
+
+			if (playersOfRole) {
+				this.playersByRole.set(role, playersOfRole.filter((player) => ! player.gameData.get('dead')))
+			}
 		}
 
 		this.lobby.emitPlayers()
 
 		return players
+	}
+
+	protected matchClinched() : boolean {
+		const alive = this.alivePlayers
+
+		if (alive.length === 2 && this.inLove
+			&& alive[0].gameData.get('inLoveWith')
+			&& alive[0].gameData.get('inLoveWith') === alive[1]) {
+			return this.forceWin('lovers', this.inLove)
+		}
+
+		const werewolves = alive.filter((player) => player.gameData.get('role') === 'werewolf')
+
+		if (werewolves.length === 0) {
+			return this.forceWin('citizens', this.lobby.players.filter((player) => player.gameData.get('role') !== 'werewolf'))
+		}
+
+		if (werewolves.length === alive.length) {
+			return this.forceWin('werewolves', werewolves)
+		}
+
+		return false
+	}
+
+	protected forceWin(group: string, players: Player[]) : true {
+		this.winners = players
+		this.losers = this.lobby.players.filter((player) => ! players.includes(player))
+		this.winner = group
+
+		this.emitWinner()
+		this.end()
+
+		return true
+	}
+
+	protected emitWinner() : void {
+		if (! this.winner || ! this.winners || ! this.losers) return
+
+		this.lobby.emit('action', {
+			view: 'gg wp',
+			data: {
+				winner: this.winner,
+				winners: this.winners.map((player) => player.forFinalScoreboard),
+				losers: this.losers.map((player) => player.forFinalScoreboard),
+			},
+		})
 	}
 }

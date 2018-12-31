@@ -15,5 +15,9 @@ export default {
 	props: {
 		data: { required: true },
 	},
+
+	mounted() {
+		this.$emit('log', `You are a ${this.data.role}.`)
+	},
 }
 </script>

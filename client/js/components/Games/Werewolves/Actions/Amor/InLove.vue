@@ -17,5 +17,9 @@ export default {
 	props: {
 		data: { required: true },
 	},
+
+	mounted() {
+		this.$emit('log', `You are in love with ${this.data.other.name} (${this.data.other.role}).`)
+	},
 }
 </script>

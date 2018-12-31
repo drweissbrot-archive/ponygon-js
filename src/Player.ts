@@ -56,6 +56,14 @@ export default class Player {
 			: data
 	}
 
+	public get forFinalScoreboard() : object {
+		let data = this.forPublic
+
+		return (this.gameData)
+			? Object.assign(data, this.gameData.forFinalScoreboard)
+			: data
+	}
+
 	public emit(event: string, data?: any) : this {
 		this.socket.emit(event, data)
 

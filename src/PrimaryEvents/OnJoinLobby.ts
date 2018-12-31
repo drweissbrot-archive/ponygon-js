@@ -9,6 +9,10 @@ export default function ({ name, lobbyId }: { name: string, lobbyId: string }, r
 	const player = pg.createPlayer(name, this)
 	const lobby = pg.getLobby(lobbyId) || pg.createLobby(player)
 
+	if (lobby.game && ! lobby.game.meta.allowJoiningWhileRunning) {
+		return this.emit('cannot join lobby', { reason: 'already in a game' })
+	}
+
 	lobby.addPlayer(player)
 
 	resolve({

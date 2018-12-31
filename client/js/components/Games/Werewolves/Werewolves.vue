@@ -29,6 +29,7 @@
 				<component :is="`pg-${view}`"
 					:data="actionData"
 					:players="players"
+					@log="log"
 				/>
 			</div>
 
@@ -44,24 +45,33 @@
 <script>
 import Connection from 'connection'
 
-import PgWaitingForPlayers from './Actions/WaitingForPlayers'
+import PgGgWp from './Actions/GgWp'
 import PgRoleInterstitial from './Actions/RoleInterstitial'
+import PgWaitingForPlayers from './Actions/WaitingForPlayers'
 
 import PgAmorChoose from './Actions/Amor/Choose'
 import PgAmorInLove from './Actions/Amor/InLove'
 import PgWerewolfChoose from './Actions/Werewolf/Choose'
 import PgWerewolfResult from './Actions/Werewolf/Result'
+import PgDaytimeDeaths from './Actions/Daytime/Deaths'
+import PgDaytimeMayor from './Actions/Daytime/Mayor'
+import PgDaytimeAccusations from './Actions/Daytime/Accusations'
 
 export default {
 	components: {
-		PgWaitingForPlayers,
+		PgGgWp,
 		PgRoleInterstitial,
+		PgWaitingForPlayers,
 
 		PgAmorChoose,
 		PgAmorInLove,
 
 		PgWerewolfChoose,
 		PgWerewolfResult,
+
+		PgDaytimeDeaths,
+		PgDaytimeMayor,
+		PgDaytimeAccusations,
 	},
 
 	props: {
@@ -104,20 +114,14 @@ export default {
 
 		addEventListeners() {
 			Connection.on('action', this.onAction)
-			// .on('log', this.onLog)
+			.on('log', this.log)
 			.on('phase', this.onPhase)
 		},
 
 		onAction({ view, data }) {
 			this.actionData = data
 			this.view = view.replace(/ /gu, '-')
-
-			if (data && data.role) this.log(`You are a ${data.role}.`)
 		},
-
-		// onLog({ log }) {
-		// 	this.log(log)
-		// },
 
 		onPhase({ phase }) {
 			this.phase = phase

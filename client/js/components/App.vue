@@ -73,7 +73,7 @@ export default {
 		},
 
 		lobbyId(newLobbyId, oldLobbyId) {
-			window.location.hash = `#${newLobbyId}`
+			if (newLobbyId) window.location.hash = `#${newLobbyId}`
 		},
 	},
 }

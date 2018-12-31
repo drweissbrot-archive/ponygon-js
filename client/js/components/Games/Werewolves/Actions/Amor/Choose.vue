@@ -56,6 +56,7 @@ export default {
 			})
 
 			this.submitted = true
+			this.$emit('log', this.summary)
 		},
 	},
 

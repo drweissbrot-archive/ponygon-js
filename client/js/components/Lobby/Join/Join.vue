@@ -12,16 +12,13 @@
 
 <script>
 import Connection from 'connection'
+import StoresRememberedNickname from './Concerns/StoresRememberedNickname'
 
 export default {
+	mixins: [ StoresRememberedNickname ],
+
 	props: {
 		lobbyId: { required: true },
-	},
-
-	data() {
-		return {
-			name: '',
-		}
 	},
 
 	methods: {
