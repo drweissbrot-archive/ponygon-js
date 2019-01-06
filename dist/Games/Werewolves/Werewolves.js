@@ -768,6 +768,7 @@ class Werewolves extends _Game.default {
     this.mayor.gameData.set('mayor', true);
     this.mayor.emit('mayor');
     if (wasElected) this.lobby.emit('log', `${mayor.name} was elected mayor.`);else this.lobby.emit('log', `${mayor.name} was chosen as new mayor.`);
+    this.lobby.emitPlayers();
     return this;
   }
 

@@ -37,7 +37,7 @@
 
 					<div class="additional">
 						<span v-if="player.dead" class="dead" title="dead">✝</span>
-						<span v-if="player.mayor" class="mayor" title="Mayor">m</span>
+						<span v-if="player.mayor" class="mayor" :title="player.dead ? 'was Mayor' : 'Mayor'">m</span>
 						<span v-if="player.leader" class="leader" title="Lobby Leader">👑</span>
 					</div>
 				</div>

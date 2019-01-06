@@ -868,6 +868,8 @@ export default class Werewolves extends Game {
 		if (wasElected) this.lobby.emit('log', `${mayor.name} was elected mayor.`)
 		else this.lobby.emit('log', `${mayor.name} was chosen as new mayor.`)
 
+		this.lobby.emitPlayers()
+
 		return this
 	}
 

@@ -35,6 +35,10 @@ export default {
 		data: { required: true },
 	},
 
+	mounted() {
+		this.$emit('log', this.heading)
+	},
+
 	computed: {
 		heading() {
 			return `The ${this.data.winner} win!`

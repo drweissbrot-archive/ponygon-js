@@ -8,7 +8,7 @@
 			Please note that you cannot protect the same person two nights in a row.
 		</p>
 
-		<div class="players">
+		<div class="players" v-if="! submitted">
 			<a v-for="player in alivePlayers"
 				v-if="! data.protectedLastNight || player.id !== data.protectedLastNight.id"
 				href="#"

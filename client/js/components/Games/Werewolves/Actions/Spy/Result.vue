@@ -18,9 +18,9 @@ export default {
 
 	computed: {
 		result() {
-			if (this.data.friendly) return `${this.data.player.name} seems to be an ordinary villager.`
-
-			return `Something seems off about ${this.data.player.name}.`
+			return (this.data.friendly)
+				? `${this.data.player.name} seems to be an ordinary villager.`
+				: `Something seems off about ${this.data.player.name}.`
 		}
 	},
 }

@@ -21,7 +21,9 @@
 		</div>
 
 		<div class="player-list">
-			<h2>Players in Your Lobby</h2>
+			<h2>
+				{{ players.length }} Players in Your Lobby
+			</h2>
 
 			<div v-for="player in players" class="player">
 				{{ player.name }}

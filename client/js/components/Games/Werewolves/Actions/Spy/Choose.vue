@@ -19,7 +19,7 @@
 				{{ summary }}
 			</p>
 
-			<button v-if="chosen && ! submitted" @click.prevent="submit">
+			<button v-if="chosen" @click.prevent="submit">
 				Confirm
 			</button>
 		</div>
@@ -37,7 +37,6 @@ export default {
 	data() {
 		return {
 			chosen: null,
-			submitted: false,
 		}
 	},
 
@@ -50,16 +49,14 @@ export default {
 			Connection.emit('spy choice', {
 				player: this.chosen.id,
 			})
-
-			this.submitted = true
 		},
 	},
 
 	computed: {
 		summary() {
-			if (this.chosen) return `You want to investigate ${this.chosen.name}.`
-
-			return 'Please choose who you want to investigate.'
+			return (this.chosen)
+				? `You want to investigate ${this.chosen.name}.`
+				: 'Please choose who you want to investigate.'
 		},
 	},
 }

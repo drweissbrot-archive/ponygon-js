@@ -4,7 +4,7 @@
 			Who should be in love?
 		</h3>
 
-		<div class="players">
+		<div class="players" v-if="! submitted">
 			<a v-for="player in alivePlayers"
 				href="#"
 				:class="[ 'player', { '--active': chosen.includes(player) } ]"

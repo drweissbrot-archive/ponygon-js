@@ -7,15 +7,33 @@
 
 			<button type="submit">Join</button>
 		</form>
+
+		<p v-if="cannotJoinReason">
+			Could not join lobby: {{ cannotJoinReason }}
+		</p>
 	</div>
 </template>
 
 <script>
 import Connection from 'connection'
 import StoresRememberedNickname from './Concerns/StoresRememberedNickname'
+import ListensForConnectionEvents from 'mixins/ListensForConnectionEvents'
 
 export default {
-	mixins: [ StoresRememberedNickname ],
+	mixins: [
+		ListensForConnectionEvents,
+		StoresRememberedNickname,
+	],
+
+	data() {
+		return {
+			cannotJoinReason: null,
+
+			events: {
+				'cannot join lobby': this.onCannotJoinLobby,
+			},
+		}
+	},
 
 	props: {
 		lobbyId: { required: true },
@@ -29,6 +47,10 @@ export default {
 			}, (res) => {
 				this.$emit('joinedLobby', res)
 			})
+		},
+
+		onCannotJoinLobby({ reason }) {
+			this.cannotJoinReason = reason
 		},
 	},
 }
