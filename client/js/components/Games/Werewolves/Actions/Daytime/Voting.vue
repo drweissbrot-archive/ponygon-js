@@ -34,10 +34,6 @@ export default {
 		}
 	},
 
-	mounted() {
-		Connection.on('accusations', this.onAccusations)
-	},
-
 	methods: {
 		voteFor(player) {
 			Connection.emit('vote', { player: player.id })

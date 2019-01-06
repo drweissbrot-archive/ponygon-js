@@ -5,10 +5,11 @@
 }
 
 .meta {
+	marginBottomIfNotLast()
+
 	.speaking-allowed,
 	.you-are,
-	.mayor,
-	.player {
+	.mayor {
 		card()
 		marginBottomIfNotLast()
 	}
@@ -30,6 +31,9 @@
 	border-top 1px solid #999
 
 	.player {
+		card()
+		marginBottomIfNotLast()
+
 		&.--dead {
 			opacity .7
 		}

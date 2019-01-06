@@ -9,6 +9,7 @@ ability: when dying, must kill another player
 affiliation: villagers
 appears to be: villager
 ability: can once per match choose one player, and will be displayed the affiliation (appears to be) of that player, as well as two randomly selected other players
+TODO: i dont like this idea too much, maybe something else instead
 
 
 # Implemented

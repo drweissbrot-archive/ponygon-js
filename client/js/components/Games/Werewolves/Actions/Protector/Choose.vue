@@ -10,6 +10,7 @@
 
 		<div class="players">
 			<a v-for="player in alivePlayers"
+				v-if="! data.protectedLastNight || player.id !== data.protectedLastNight.id"
 				href="#"
 				:class="[ 'player', { '--active': chosen === player } ]"
 				@click.prevent="choose(player)"
@@ -36,6 +37,7 @@ import Connection from 'connection'
 export default {
 	props: {
 		alivePlayers: { required: true },
+		data: { required: true },
 	},
 
 	data() {

@@ -3,7 +3,7 @@
 		<h2>Accusations</h2>
 
 		<div class="continue" v-if="mayor">
-			<button @click.prevent="continueToVoting">
+			<button :disabled="! accusations.length" @click.prevent="continueToVoting">
 				Continue to Voting
 			</button>
 		</div>
@@ -32,8 +32,11 @@
 
 <script>
 import Connection from 'connection'
+import ListensForConnectionEvents from 'mixins/ListensForConnectionEvents'
 
 export default {
+	mixins: [ ListensForConnectionEvents ],
+
 	props: {
 		data: { required: true },
 		alivePlayers: { required: true },
@@ -43,11 +46,11 @@ export default {
 	data() {
 		return {
 			accusations: [],
-		}
-	},
 
-	mounted() {
-		Connection.on('accusations', this.onAccusations)
+			events: {
+				'accusations': this.onAccusations,
+			},
+		}
 	},
 
 	methods: {
@@ -56,7 +59,7 @@ export default {
 		},
 
 		continueToVoting() {
-			Connection.emit('mayor continue to voting')
+			if (this.accusations.length) Connection.emit('mayor continue to voting')
 		},
 
 		onAccusations({ accusations }) {

@@ -40,7 +40,7 @@ export default class Lobby {
 		return this
 	}
 
-	public emit(event: string, data: any) : this {
+	public emit(event: string, data?: any) : this {
 		for (const player of this.players) {
 			player.socket.emit(event, data)
 		}

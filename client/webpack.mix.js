@@ -9,6 +9,7 @@ mix.setPublicPath('./public')
 	resolve: {
 		alias: {
 			'connection': path.resolve(__dirname, 'js/Connection.js'),
+			'mixins': path.resolve(__dirname, 'js/mixins/'),
 		},
 	},
 })

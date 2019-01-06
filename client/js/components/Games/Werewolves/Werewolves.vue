@@ -14,8 +14,8 @@
 					Please do not talk now.
 				</div>
 
-				<div class="you-are" v-if="ownRole">
-					You are a {{ ownRole }}.
+				<div class="you-are" v-if="role">
+					You are a {{ role }}.
 				</div>
 
 				<div class="mayor" v-if="mayor">
@@ -52,7 +52,7 @@
 					Phase {{ phase.part }}
 				</h2>
 
-				<component v-if="! dead || viewsShownForDead.includes(view)"
+				<component v-if="view && ! dead || viewsShownForDead.includes(view)"
 					:is="`pg-${view}`"
 					:data="actionData"
 					:players="players"
@@ -96,6 +96,7 @@ import PgSpyChoose from './Actions/Spy/Choose'
 import PgSpyResult from './Actions/Spy/Result'
 import PgProtectorChoose from './Actions/Protector/Choose'
 import PgWitchChoose from './Actions/Witch/Choose'
+import PgHunterChoose from './Actions/Hunter/Choose'
 
 export default {
 	components: {
@@ -122,6 +123,8 @@ export default {
 		PgProtectorChoose,
 
 		PgWitchChoose,
+
+		PgHunterChoose,
 	},
 
 	props: {
@@ -139,7 +142,7 @@ export default {
 			players: [],
 			alivePlayers: [],
 
-			ownRole: null,
+			role: null,
 			dead: false,
 			mayor: false,
 
@@ -148,6 +151,7 @@ export default {
 			viewsShownForDead: [
 				'mayor-choose-successor',
 				'gg-wp',
+				'hunter-choose',
 			],
 		}
 	},
@@ -198,7 +202,7 @@ export default {
 		},
 
 		onRole({ role }) {
-			this.ownRole = role
+			this.role = role
 		},
 
 		onSpeakingAllowed(allowed) {
@@ -207,8 +211,12 @@ export default {
 	},
 
 	watch: {
-		players() {
-			this.alivePlayers = this.players.filter((player) => ! player.dead)
+		players(newPlayers, oldPlayers) {
+			this.alivePlayers = newPlayers.filter((player) => ! player.dead)
+		},
+
+		role(newRole, oldRole) {
+			if (newRole !== oldRole) this.log(`You are a ${newRole}.`)
 		},
 	},
 }

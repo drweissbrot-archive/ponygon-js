@@ -8,4 +8,6 @@ export default interface WerewolvesVictimsObject {
 	witches: Player[]
 
 	elders: Player[]
+
+	// hunter: Player | null
 }

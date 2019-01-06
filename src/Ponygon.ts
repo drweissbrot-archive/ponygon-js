@@ -44,8 +44,8 @@ export default class Ponygon {
 	}
 
 	public createLobby(leader: Player) : Lobby {
-		// const id = wordIdFor(this.lobbies) // TODO
-		const id = 'nest-quiet-method'
+		const id = wordIdFor(this.lobbies) // TODO
+		// const id = 'nest-quiet-method' // TODO this is useful for debugging
 
 		const lobby = new Lobby(id, leader)
 

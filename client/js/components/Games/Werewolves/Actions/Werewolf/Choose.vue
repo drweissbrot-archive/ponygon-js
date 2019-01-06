@@ -42,8 +42,11 @@
 
 <script>
 import Connection from 'connection'
+import ListensForConnectionEvents from 'mixins/ListensForConnectionEvents'
 
 export default {
+	mixins: [ ListensForConnectionEvents ],
+
 	props: {
 		data: { required: true },
 		alivePlayers: { required: true },
@@ -53,11 +56,11 @@ export default {
 		return {
 			chosen: null,
 			choices: this.getInitialAllChoices(),
-		}
-	},
 
-	mounted() {
-		Connection.on('werewolf choices', this.onWerewolfChoices)
+			events: {
+				'werewolf choices': this.onWerewolfChoices,
+			},
+		}
 	},
 
 	methods: {

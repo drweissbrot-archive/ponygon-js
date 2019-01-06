@@ -10,14 +10,14 @@ import VictimsObject from './Contracts/VictimsObject'
 import { info, randomNumber, after } from 'helpers'
 
 const defaultRoles = {
-	// amor: 1,
-	// spy: 3,
+	amor: 1,
+	spy: 3,
 	witch: 3,
 	// hunter: 3, // TODO
-	// protector: 1,
+	protector: 3,
 	// investigator: 3, // TODO
-	// lycanthrope: 3,
-	// elder: 3,
+	lycanthrope: 3,
+	elder: 3,
 }
 
 const unfriendlyRoles = [
@@ -105,9 +105,11 @@ export default class Werewolves extends Game {
 		await this.runDay(deaths)
 
 		deaths = this.handleDeaths()
+		if (this.matchHasClinched()) return
+
 		await this.handleMayorDeath(deaths)
 
-		if (! this.matchHasClinched()) return this.nextRound()
+		return this.emitRoles().nextRound()
 	}
 
 	protected assignRoles() : void {
@@ -127,8 +129,8 @@ export default class Werewolves extends Game {
 		}
 	}
 
-	protected emitRoles() : void {
-		for (const player of this.lobby.players) {
+	protected emitRoles() : this {
+		for (const player of this.alivePlayers) {
 			player.emit('role', { role: player.gameData.get('role') })
 			.emit('action', {
 				view: 'role-interstitial',
@@ -137,6 +139,8 @@ export default class Werewolves extends Game {
 				},
 			})
 		}
+
+		return this
 	}
 
 	protected getWerewolfCount() : number {
@@ -336,7 +340,7 @@ export default class Werewolves extends Game {
 					choicesForTarget.push(werewolf)
 
 					// decide if the victim has enough votes
-					const victim = this.determineVotingWinner(choices, minVotesForVictim)
+					const victim = this.determineVotingWinner(choices, minVotesForVictim, false)
 
 					if (! victim) {
 						let targets: object[] = []
@@ -526,7 +530,9 @@ export default class Werewolves extends Game {
 		return new Promise((resolve, reject) => {
 			if (! this.mayor) return after(60, () => resolve(accusations))
 
-			this.mayor.once('mayor continue to voting', () => resolve(accusations))
+			this.mayor.once('mayor continue to voting', () => {
+				if (Array.from(accusations.values()).some((accusers) => accusers.length > 0)) resolve(accusations)
+			})
 		})
 	}
 
@@ -623,12 +629,19 @@ export default class Werewolves extends Game {
 	protected getMinVoteCount(total: number) : number {
 		if (total < 2) return total
 
-		return Math.ceil(total / 1.99) // we always need more than 50%
+		return total / 1.99 // we always need more than 50%
 	}
 
-	protected determineVotingWinner(choices: Map<string, Player[]>, minVotesForVictim: number) : Player | false {
+	protected determineVotingWinner(
+		choices: Map<string, Player[]>,
+		minVotesForVictim: number,
+		preferMayor: boolean = true,
+	) : Player | false {
 		for (const target of choices.entries()) {
-			if (target[1].length >= minVotesForVictim) {
+			let votes = target[1].length
+			if (preferMayor && this.mayor && target[1].includes(this.mayor)) votes += .5
+
+			if (votes >= minVotesForVictim) {
 				return this.getPlayerById(target[0]) || false
 			}
 		}
@@ -640,6 +653,7 @@ export default class Werewolves extends Game {
 		this.victims = {
 			village: null,
 			werewolves: null,
+			// hunter: null,
 			witches: [],
 			elders: [],
 		}
@@ -700,6 +714,41 @@ export default class Werewolves extends Game {
 
 		return deaths
 	}
+
+	// protected async handleHunterDeaths(deaths: Player[]) : Promise<Player[] | undefined> {
+	// 	const deadHunters = deaths.filter((player) => player.gameData.get('role') === 'hunter')
+	// 	if (! deadHunters.length) return Promise.all([])
+	//
+	// 	let killed = []
+	//
+	// 	for (const hunter of deadHunters) {
+	// 		killed.push(... await this.getHunterVictim(hunter))
+	// 	}
+	//
+	// 	return killed
+	// }
+	//
+	// protected getHunterVictim(hunter: Player) : Promise<Player[]> {
+	// 	return new Promise((resolve, reject) => {
+	// 		hunter.emit('action', { view: 'hunter choose' })
+	// 		.once('hunter choice', async ({ player }: { player: string }) => {
+	// 			hunter.emit('clear action')
+	//
+	// 			const victim = this.getPlayerById(player)
+	// 			if (! victim) return resolve()
+	//
+	// 			this.victims.hunter = victim
+	//
+	// 			const deaths = this.killVictims()
+	// 			await this.handleHunterDeaths(deaths)
+	// 			await this.handleMayorDeath(deaths)
+	//
+	// 			resolve()
+	// 		})
+	//
+	// 		// TODO force resolve after some time
+	// 	})
+	// }
 
 	protected async handleMayorDeath(deaths: Player[]) : Promise<any> {
 		const deadMayor = deaths.find((player) => player.gameData.get('mayor'))
