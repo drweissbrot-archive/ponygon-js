@@ -9,30 +9,12 @@
 		</h4>
 
 		<!-- TODO heart between players when lovers win -->
-		<div class="player-list">
-			<div class="player" v-for="player in this.data.winners">
-				{{ player.name }}
-
-				<span v-if="player.mayor" title="mayor">m</span>
-				<span v-if="player.dead" title="dead">✝</span>
-
-				<span class="role">
-					{{ player.role }}
-				</span>
-			</div>
+		<div class="players --winners">
+			<gg-wp-player v-for="(player, index) in this.data.winners" :key="index" :player="player" />
 		</div>
 
-		<div class="player-list --losers">
-			<div class="player" v-for="player in this.data.losers">
-				{{ player.name }}
-
-				<span v-if="player.mayor" title="mayor">m</span>
-				<span v-if="player.dead" title="dead">✝</span>
-
-				<span class="role">
-					{{ player.role }}
-				</span>
-			</div>
+		<div class="players --losers">
+			<gg-wp-player v-for="(player, index) in this.data.losers" :key="index" :player="player" />
 		</div>
 
 		<p>
@@ -42,7 +24,13 @@
 </template>
 
 <script>
+import GgWpPlayer from './GgWpPlayer'
+
 export default {
+	components: {
+		GgWpPlayer,
+	},
+
 	props: {
 		data: { required: true },
 	},

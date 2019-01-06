@@ -20,7 +20,7 @@ export default abstract class Game {
 
 	public abstract get meta() : GameMetaObject
 
-	protected abstract initialGameData()
+	protected abstract initialGameData() : GameData
 
 	protected emitStarting() : this {
 		this.lobby.emit('game starting', {

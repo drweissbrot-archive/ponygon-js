@@ -4,17 +4,7 @@
 
 		<template v-if="data.deaths.length">
 			<p>
-				... and finds
-			</p>
-
-			<p v-for="player in data.deaths">
-				<strong>
-					{{ player.name }}
-				</strong>
-			</p>
-
-			<p>
-				dead.
+				... and finds <strong>{{ names }}</strong> dead.
 			</p>
 		</template>
 
@@ -30,8 +20,14 @@ export default {
 		data: { required: true },
 	},
 
-	mounted() {
-		this.$emit('log', this.data.deaths.map((player) => player.name).join(', ') + ' died.')
-	}
+	// mounted() {
+	// 	this.$emit('log', this.data.deaths.map((player) => player.name).join(', ') + ' died.')
+	// },
+
+	computed: {
+		names() {
+			return this.data.deaths.join(', ')
+		},
+	},
 }
 </script>

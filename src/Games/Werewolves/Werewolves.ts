@@ -11,7 +11,7 @@ import { info, randomNumber, after } from 'helpers'
 
 const defaultRoles = {
 	amor: 1,
-	// spy: 3,
+	spy: 3,
 	// witch: 3,
 	// hunter: 3,
 	// protector: 3,
@@ -64,11 +64,6 @@ export default class Werewolves extends Game {
 		after(5, () => {
 			this.nextRound()
 		})
-
-		// TODO Remove
-		for (const player of this.lobby.players) {
-			console.log(player.forFinalScoreboard)
-		}
 	}
 
 	public get meta() {
@@ -86,18 +81,26 @@ export default class Werewolves extends Game {
 		return new GameData()
 	}
 
-	protected async nextRound() {
-		this.resetVictims()
+	protected async nextRound() : Promise<any> {
+		this.speakingAllowed(false)
 		.increaseRound()
 		.emitPhase()
 
 		await this.runNight()
 
-		const deaths = this.handleDeaths()
+		let deaths = this.handleDeaths()
+		if (this.matchHasClinched()) return
 
-		if (this.matchClinched()) return
+		await this.handleMayorDeath(deaths)
 
-		this.runDay(deaths)
+		this.speakingAllowed(true)
+
+		await this.runDay(deaths)
+
+		deaths = this.handleDeaths()
+		await this.handleMayorDeath(deaths)
+
+		if (! this.matchHasClinched()) return this.nextRound()
 	}
 
 	protected assignRoles() : void {
@@ -119,7 +122,8 @@ export default class Werewolves extends Game {
 
 	protected emitRoles() : void {
 		for (const player of this.lobby.players) {
-			player.emit('action', {
+			player.emit('role', { role: player.gameData.get('role') })
+			.emit('action', {
 				view: 'role-interstitial',
 				data: {
 					role: player.gameData.get('role'),
@@ -184,8 +188,11 @@ export default class Werewolves extends Game {
 		await this.runNightPartOne()
 		this.increasePart().emitPhase()
 
-		await this.runNightPartTwo()
-		this.increasePart().emitPhase()
+		// amor lovers
+		if (this.phase.round === 1) {
+			await this.runNightPartTwo()
+			this.increasePart().emitPhase()
+		}
 
 		await this.runNightPartThree()
 		this.increasePart().emitPhase()
@@ -266,17 +273,15 @@ export default class Werewolves extends Game {
 	}
 
 	protected runNightPartThree() : Promise<any> {
-		let promises: Promise<any>[] = []
-
 		const werewolves = this.playersOfRole('werewolf')
+
 		const werewolvesPublic = werewolves.map((wolf) => wolf.forPublic)
 		const minVotesForVictim = this.getMinVoteCount(werewolves.length)
 
 		let choices = this.getVotingChoicesBase()
 
-		// TODO only a single promise should be returned (similar to mayor election)
-		for (const werewolf of werewolves) {
-			promises.push(new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
+			for (const werewolf of werewolves) {
 				werewolf.emit('action', {
 					view: 'werewolf choose',
 					data: { werewolves: werewolvesPublic },
@@ -299,23 +304,47 @@ export default class Werewolves extends Game {
 
 					// decide if the victim has enough votes
 					const victim = this.determineVotingWinner(choices, minVotesForVictim)
-					if (! victim) return
 
-					resolve()
+					if (! victim) {
+						let targets: object[] = []
 
-					this.victims.werewolves = victim
+						for (const wolf of werewolves) {
+							let data: any = { wolf: wolf.forPublic, choice: null }
 
-					for (const wolf of werewolves) {
-						wolf.emit('action', {
-							view: 'werewolf result',
-							data: { victim: victim.forPublic },
-						})
+							let playerId
+							for (const entry of choices.entries()) {
+								if (entry[1].includes(wolf)) {
+									playerId = entry[0]
+									break
+								}
+							}
+
+							const player = this.getPlayerById(playerId)
+							if (player) data.choice = player.forPublic
+
+							targets.push(data)
+						}
+
+						for (const wolf of werewolves) {
+							wolf.emit('werewolf choices', { choices: targets })
+						}
+					} else {
+						this.victims.werewolves = victim
+
+						for (const wolf of werewolves) {
+							wolf.emit('action', {
+								view: 'werewolf result',
+								data: { victim: victim.forPublic },
+							})
+						}
+
+						resolve()
 					}
 				})
-			}))
-		}
+			}
 
-		return Promise.all(promises)
+			// TODO force resolve after some time
+		})
 	}
 
 	protected runNightPartFour() : Promise<any> {
@@ -336,23 +365,22 @@ export default class Werewolves extends Game {
 		this.increasePart().emitPhase()
 
 		// mayor
-		await this.runDayPartTwo()
-		this.increasePart().emitPhase()
+		if (! this.mayor || this.mayor.gameData.get('dead')) {
+			await this.runDayPartTwo()
+			this.increasePart().emitPhase()
+		}
 
 		// discussion/accusations
-		await this.runDayPartThree()
+		const accusations = await this.runDayPartThree()
 		this.increasePart().emitPhase()
 
 		// voting
-		await this.runDayPartFour()
+		await this.runDayPartFour(accusations)
 	}
 
 	protected runDayPartOne(deaths: Player[]) : Promise<any> {
-		this.lobby.emit('action', {
-			view: 'daytime deaths',
-			data: {
-				deaths: deaths.map((player) => player.forPublic),
-			},
+		this.emitActionToAlive('daytime deaths', {
+			deaths: deaths.map((player) => player.forPublic),
 		})
 
 		return new Promise((resolve, reject) => {
@@ -361,14 +389,14 @@ export default class Werewolves extends Game {
 	}
 
 	protected runDayPartTwo() : Promise<any> {
-		const minVotesToWin = this.getMinVoteCount(this.lobby.players.length)
+		const minVotesToWin = this.getMinVoteCount(this.alivePlayers.length)
 		let votes = this.getVotingChoicesBase()
 		let promises: Promise<any>[] = []
 
-		this.lobby.emit('action', { view: 'daytime mayor' })
+		this.emitActionToAlive('daytime mayor')
 
 		return new Promise((resolve, reject) => {
-			for (const player of this.lobby.players) {
+			for (const player of this.alivePlayers) {
 				player.on('vote for mayor', ({ player: votedFor }: { player: string }) => {
 					const target = this.getPlayerById(votedFor)
 					if (! target) return
@@ -388,38 +416,91 @@ export default class Werewolves extends Game {
 					const mayor = this.determineVotingWinner(votes, minVotesToWin)
 					if (! mayor) return
 
+					this.setMayor(mayor)
+
 					resolve()
-
-					this.mayor = mayor
-
-					this.lobby.emit('log', `${mayor.name} was elected mayor.`)
-
-					// for (const player of this.lobby.players) {
-					// 	player.emit('log', `${mayor.name} was elected mayor.`)
-					// 	.emit('action', {
-					// 		view: 'daytime mayor-result',
-					// 		data: { mayor: mayor.forPublic },
-					// 	})
-					// }
 				})
 			}
 		})
 	}
 
-	protected runDayPartThree() : Promise<any> {
-		this.lobby.emit('action', { view: 'daytime accusations' })
+	protected runDayPartThree() : Promise<Map<string, Player[]>> {
+		this.emitActionToAlive('daytime accusations')
+
+		let accusations = this.getVotingChoicesBase()
+
+		for (const player of this.alivePlayers) {
+			player.on('accuse', ({ player: votedFor }: { player: string }) => {
+				const target = this.getPlayerById(votedFor)
+				if (! target) return
+
+				// remove previous choice this player made
+				accusations.forEach((accusers, targetId) => {
+					accusations.set(targetId, accusers.filter((voter) => voter !== player))
+				})
+
+				// apply current choice this player made
+				let choicesForTarget = accusations.get(target.id)
+				if (! choicesForTarget) return
+
+				choicesForTarget.push(player)
+
+				this.emitAccusations(accusations)
+			})
+		}
 
 		return new Promise((resolve, reject) => {
-			if (! this.mayor) return resolve()
+			if (! this.mayor) return after(60, () => resolve(accusations))
 
-			this.mayor.once('mayor go to voting', resolve)
+			this.mayor.once('mayor continue to voting', () => resolve(accusations))
 		})
 	}
 
-	protected runDayPartFour() : Promise<any> {
-		this.lobby.emit('log', 'voting would show now')
+	protected runDayPartFour(accusations: Map<string, Player[]>) : Promise<any> {
+		let accused: object[] = []
 
-		return Promise.all([])
+		for (const entry of accusations.entries()) {
+			if (! entry[1].length) continue
+
+			const player = this.getPlayerById(entry[0])
+			if (player) accused.push(player.forPublic)
+		}
+
+		this.emitToAlive('action', {
+			view: 'daytime voting',
+			data: { accused },
+		})
+
+		let votes = this.getVotingChoicesBase()
+		const minVotesForVictim = this.getMinVoteCount(this.alivePlayers.length)
+
+		return new Promise((resolve, reject) => {
+			for (const player of this.alivePlayers) {
+				player.on('vote', ({ player: votedFor }: { player: string }) => {
+					const target = this.getPlayerById(votedFor)
+					if (! target) return
+
+					// remove previous choice this player made
+					votes.forEach((voters, targetId) => {
+						votes.set(targetId, voters.filter((voter) => voter !== player))
+					})
+
+					// apply current choice this player made
+					let choicesForTarget = votes.get(target.id)
+					if (! choicesForTarget) return
+
+					choicesForTarget.push(player)
+
+					// decide if the victim has enough votes
+					const victim = this.determineVotingWinner(votes, minVotesForVictim)
+					if (! victim) return
+
+					this.victims.village = victim
+
+					resolve()
+				})
+			}
+		})
 	}
 
 	protected playersOfRole(role: string) : Player[] {
@@ -458,7 +539,7 @@ export default class Werewolves extends Game {
 	protected getVotingChoicesBase() : Map<string, Player[]> {
 		let choices: Map<string, Player[]> = new Map()
 
-		for (const player of this.lobby.players) {
+		for (const player of this.alivePlayers) {
 			choices.set(player.id, [])
 		}
 
@@ -483,6 +564,7 @@ export default class Werewolves extends Game {
 
 	protected resetVictims() : this {
 		this.victims = {
+			village: null,
 			werewolves: null,
 			witches: [],
 		}
@@ -491,38 +573,68 @@ export default class Werewolves extends Game {
 	}
 
 	protected handleDeaths() : Player[] {
-		let players: Player[] = []
+		let deaths: Player[] = []
 
-		if (this.victims.werewolves) players.push(this.victims.werewolves)
+		// handle werewolf victim
+		if (this.victims.werewolves) deaths.push(this.victims.werewolves)
 
-		if (this.inLove && (players.includes(this.inLove[0]) || players.includes(this.inLove[1]))) {
-			players = players.concat(this.inLove)
+		// handle witch victims
+		deaths.push(...this.victims.witches)
+
+		// handle village victim
+		if (this.victims.village) deaths.push(this.victims.village)
+
+		// handle lovers
+		if (this.inLove && (deaths.includes(this.inLove[0]) || deaths.includes(this.inLove[1]))) {
+			deaths.push(...this.inLove)
 		}
 
-		players = _(players.concat(this.victims.witches)).uniq()
+		deaths = _(deaths).uniq()
 
-		for (const player of players) {
+		// kill players
+		for (const player of deaths) {
 			player.gameData.set('dead', true)
-
-			if (player.gameData.get('inLoveWith')) {
-				player.gameData.get('inLoveWith').gameData.set('dead', true)
-			}
+			player.emit('dead')
 		}
 
-		for (const role in this.playersByRole) {
+		// clean up role arrays
+		for (const role of this.playersByRole.keys()) {
 			const playersOfRole = this.playersByRole.get(role)
+			if (! playersOfRole) continue
 
-			if (playersOfRole) {
-				this.playersByRole.set(role, playersOfRole.filter((player) => ! player.gameData.get('dead')))
-			}
+			this.playersByRole.set(role, playersOfRole.filter((player) => ! player.gameData.get('dead')))
 		}
 
+		this.lobby.emit('log', deaths.map((player) => player.name).join(', ') + ' died.')
 		this.lobby.emitPlayers()
+		this.resetVictims()
 
-		return players
+		return deaths
 	}
 
-	protected matchClinched() : boolean {
+	protected async handleMayorDeath(deaths: Player[]) : Promise<any> {
+		const deadMayor = deaths.find((player) => player.gameData.get('mayor'))
+		if (! deadMayor) return Promise.all([])
+
+		deadMayor.emit('action', { view: 'mayor choose successor' })
+
+		return new Promise((resolve, reject) => {
+			deadMayor.once('mayor choice', ({ player: playerId }: { player: string }) => {
+				deadMayor.emit('action', { view: null })
+
+				let target = this.getPlayerById(playerId)
+				if (! target) target = this.getRandomPlayer()
+
+				this.setMayor(target, false)
+
+				resolve()
+			})
+
+			// TODO force resolve after some time
+		})
+	}
+
+	protected matchHasClinched() : boolean {
 		const alive = this.alivePlayers
 
 		if (alive.length === 2 && this.inLove
@@ -538,7 +650,7 @@ export default class Werewolves extends Game {
 		}
 
 		if (werewolves.length === alive.length) {
-			return this.forceWin('werewolves', werewolves)
+			return this.forceWin('werewolves', this.lobby.players.filter((player) => player.gameData.get('role') === 'werewolf'))
 		}
 
 		return false
@@ -566,5 +678,58 @@ export default class Werewolves extends Game {
 				losers: this.losers.map((player) => player.forFinalScoreboard),
 			},
 		})
+	}
+
+	protected speakingAllowed(allowed: boolean) : this {
+		this.lobby.emit('speaking allowed', allowed)
+
+		return this
+	}
+
+	protected emitAccusations(accusations: Map<string, Player[]>) : this {
+		let accusedPlayers: object[] = []
+
+		for (const playerId of accusations.keys()) {
+			const accusers = accusations.get(playerId)
+			if (! accusers || ! accusers.length) continue
+
+			const player = this.getPlayerById(playerId)
+			if (! player) continue
+
+			accusedPlayers.push(player.forPublic)
+		}
+
+		this.lobby.emit('accusations', { accusations: accusedPlayers })
+
+		return this
+	}
+
+	protected emitToAlive(event: string, data?: any) : this {
+		for (const player of this.alivePlayers) {
+			player.emit(event, data)
+		}
+
+		return this
+	}
+
+	protected emitActionToAlive(view: string, data?: any) : this {
+		this.emitToAlive('action', { view, data })
+
+		return this
+	}
+
+	protected getRandomPlayer(includeDead: boolean = false) : Player {
+		return _.sample(includeDead ? this.lobby.players : this.alivePlayers)
+	}
+
+	protected setMayor(mayor: Player, wasElected: boolean = true) : this {
+		this.mayor = mayor
+		this.mayor.gameData.set('mayor', true)
+		this.mayor.emit('mayor')
+
+		if (wasElected) this.lobby.emit('log', `${mayor.name} was elected mayor.`)
+		else this.lobby.emit('log', `${mayor.name} was chosen as new mayor.`)
+
+		return this
 	}
 }

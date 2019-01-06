@@ -5,11 +5,6 @@
 }
 
 .speaking-allowed {
-	margin-bottom 2rem
-	padding 2rem 4rem
-
-	border-radius .25rem
-
 	&.--true {
 		background green
 		color #000
@@ -18,5 +13,31 @@
 	&.--false {
 		background red
 		color #000
+	}
+}
+
+.speaking-allowed,
+.you-are,
+.mayor,
+.player {
+	card()
+	marginBottomIfNotLast()
+}
+
+.players {
+	border-top 1px solid #999
+}
+
+.player {
+	&.--dead {
+		opacity .7
+	}
+
+	display flex
+	justify-content space-between
+	margin-top 2rem
+
+	.name {
+		font-weight bold
 	}
 }

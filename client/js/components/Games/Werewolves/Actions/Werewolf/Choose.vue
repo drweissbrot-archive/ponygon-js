@@ -5,28 +5,28 @@
 		</h3>
 
 		<div class="grid">
-			<div class="wolf" v-for="(choice, wolf) in allChoices">
+			<div class="wolf" v-for="choice in choices">
 				<div class="name">
-					{{ wolf }}
+					{{ choice.wolf.name }}
 				</div>
 
 				<div class="victim">
-					<template v-if="choice === null">
+					<template v-if="choice.choice === null">
 						has not yet chosen a victim
 					</template>
 
 					<template v-else>
-						{{ choice }}
+						{{ choice.choice.name }}
 					</template>
 				</div>
 			</div>
 		</div>
 
 		<div class="players">
-			<a v-for="player in players"
+			<a v-for="player in alivePlayers"
 				href="#"
 				:class="[ 'player', { '--active': chosen === player } ]"
-				@click.prevent="choosePlayer(player)"
+				@click.prevent="choose(player)"
 			>
 				{{ player.name }}
 			</a>
@@ -46,34 +46,37 @@ import Connection from 'connection'
 export default {
 	props: {
 		data: { required: true },
-		players: { required: true },
+		alivePlayers: { required: true },
 	},
 
 	data() {
 		return {
 			chosen: null,
-
-			allChoices: this.getInitialAllChoices(),
+			choices: this.getInitialAllChoices(),
 		}
+	},
+
+	mounted() {
+		Connection.on('werewolf choices', this.onWerewolfChoices)
 	},
 
 	methods: {
 		getInitialAllChoices() {
-			let allChoices = {}
-
-			for (const wolf in this.data.werewolves) {
-				allChoices[wolf.name] = null
-			}
-
-			return allChoices
+			return this.data.werewolves.map((wolf) => {
+				return { wolf, choice: null }
+			})
 		},
 
-		choosePlayer(player) {
+		choose(player) {
 			if (this.chosen === player) return
 
 			Connection.emit('werewolf choice', {
 				player: player.id,
 			})
+		},
+
+		onWerewolfChoices({ choices }) {
+			this.choices = choices
 		},
 	},
 

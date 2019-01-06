@@ -18,9 +18,9 @@ export default class GameData {
 	public get forPublic() : object {
 		let data = {}
 
-		for (const key in this.data) {
+		for (const key of this.data.keys()) {
 			if (! this.publicProperties || this.publicProperties.includes(key)) {
-				data[key] = this.data[key]
+				data[key] = this.data.get(key)
 			}
 		}
 

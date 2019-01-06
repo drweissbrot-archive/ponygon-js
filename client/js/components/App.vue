@@ -13,6 +13,7 @@
 			<pg-lobby v-if="lobbyId && auth"
 				:auth="auth"
 				:id="lobbyId"
+				:playerId="playerId"
 				@leave="lobbyId = auth = ''"
 			/>
 		</template>
@@ -48,6 +49,8 @@ export default {
 			auth: window.localStorage.getItem('auth'),
 			lobbyId: window.location.hash.replace(/^#/, ''),
 			game: null,
+
+			playerId: null,
 		}
 	},
 
@@ -70,6 +73,8 @@ export default {
 		auth(newAuth, oldAuth) {
 			window.localStorage.setItem('auth', newAuth)
 			Connection.auth = newAuth
+
+			this.playerId = newAuth.split(';')[0]
 		},
 
 		lobbyId(newLobbyId, oldLobbyId) {

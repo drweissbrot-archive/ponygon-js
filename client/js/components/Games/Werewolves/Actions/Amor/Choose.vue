@@ -5,7 +5,7 @@
 		</h3>
 
 		<div class="players">
-			<a v-for="player in players"
+			<a v-for="player in alivePlayers"
 				href="#"
 				:class="[ 'player', { '--active': chosen.includes(player) } ]"
 				@click.prevent="choosePlayer(player)"
@@ -31,7 +31,7 @@ import Connection from 'connection'
 
 export default {
 	props: {
-		players: { required: true },
+		alivePlayers: { required: true },
 	},
 
 	data() {

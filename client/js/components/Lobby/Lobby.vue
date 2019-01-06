@@ -23,7 +23,7 @@
 		<div class="player-list">
 			<h2>Players in Your Lobby</h2>
 
-			<div v-for="player in players">
+			<div v-for="player in players" class="player">
 				{{ player.name }}
 
 				<template v-if="player.leader">👑</template>
@@ -33,14 +33,18 @@
 		<div class="chat">
 			<h2>Chat</h2>
 
-			<p>chat goes here</p>
+			<p>TODO chat will be here at some point maybe</p>
 		</div>
 
 		<div class="game-list">
-			<div class="game">
-				<h3>werewolves</h3>
+			<h2>Choose a Game</h2>
 
-				<a href="#" @click.prevent="startGame('werewolves')">
+			<div class="game">
+				<div class="meta">
+					<h3>werewolves</h3>
+				</div>
+
+				<a v-if="isLobbyLeader" href="#" @click.prevent="startGame('werewolves')">
 					Play
 				</a>
 			</div>
@@ -55,11 +59,13 @@ export default {
 	props: {
 		auth: { required: true },
 		id: { required: true },
+		playerId: { required: true },
 	},
 
 	data() {
 		return {
 			players: [],
+			isLobbyLeader: false,
 		}
 	},
 
@@ -98,6 +104,13 @@ export default {
 	computed: {
 		inviteUrl() {
 			return window.location.toString()
+		},
+	},
+
+	watch: {
+		players() {
+			const ownPlayer = this.players.find((player) => player.id === this.playerId)
+			if (ownPlayer) this.isLobbyLeader = ownPlayer.leader
 		},
 	},
 }
