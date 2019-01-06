@@ -93,6 +93,7 @@ import PgMayorChooseSuccessor from './Actions/Mayor/ChooseSuccessor'
 import PgSpyChoose from './Actions/Spy/Choose'
 import PgSpyResult from './Actions/Spy/Result'
 import PgProtectorChoose from './Actions/Protector/Choose'
+import PgWitchChoose from './Actions/Witch/Choose'
 
 export default {
 	components: {
@@ -117,6 +118,8 @@ export default {
 		PgSpyResult,
 
 		PgProtectorChoose,
+
+		PgWitchChoose,
 	},
 
 	props: {

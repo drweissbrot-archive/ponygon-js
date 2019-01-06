@@ -12,12 +12,12 @@ import { info, randomNumber, after } from 'helpers'
 const defaultRoles = {
 	// amor: 1,
 	// spy: 3,
-	// witch: 3, // TODO
+	witch: 3,
 	// hunter: 3, // TODO
-	protector: 1,
+	// protector: 1,
 	// investigator: 3, // TODO
 	// lycanthrope: 3,
-	elder: 3,
+	// elder: 3,
 }
 
 const unfriendlyRoles = [
@@ -383,11 +383,52 @@ export default class Werewolves extends Game {
 	}
 
 	protected runNightPartFour() : Promise<any> {
-		// TODO witch
+		let promises = this.getAutoresolvingPromiseArray()
 
-		return new Promise((resolve, reject) => {
-			after(3, resolve)
-		})
+		// witch
+		if (! this.anyPlayersAre('witch')) return Promise.all(promises)
+
+		for (const witch of this.playersOfRole('witch')) {
+			const canHeal = ! witch.gameData.get('hasHealed')
+			const canKill = ! witch.gameData.get('hasKilled')
+
+			witch.emit('action', {
+				view: 'witch choose',
+				data: {
+					canHeal, canKill,
+					werewolfVictim: this.victims.werewolves ? this.victims.werewolves.forPublic : null,
+				},
+			})
+
+			if (! canHeal && ! canKill) {
+				promises.push(this.getAutoresolvingPromise(4, 4))
+				continue
+			}
+
+			promises.push(new Promise((resolve, reject) => {
+				witch.once('witch choice', ({ heal, kill }: { heal: boolean, kill?: string }) => {
+					if (canHeal && heal && this.victims.werewolves) {
+						this.protected.push(this.victims.werewolves)
+						witch.gameData.set('hasHealed', true)
+					}
+
+					if (canKill && kill) {
+						const target = this.getPlayerById(kill)
+
+						if (target) {
+							this.victims.witches.push(target)
+							witch.gameData.set('hasKilled', true)
+						}
+					}
+
+					resolve()
+				})
+
+				// TODO force resolve after some time
+			}))
+		}
+
+		return Promise.all(promises)
 	}
 
 	protected async runDay(deaths: Player[]) {
@@ -626,6 +667,7 @@ export default class Werewolves extends Game {
 		// add village victim
 		if (this.victims.village) deaths.push(this.victims.village)
 
+		// TODO lovers after removing protected, eh?
 		// handle lovers
 		if (this.inLove && (deaths.includes(this.inLove[0]) || deaths.includes(this.inLove[1]))) {
 			deaths.push(...this.inLove)

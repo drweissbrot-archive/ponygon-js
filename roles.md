@@ -1,10 +1,5 @@
 # Not Implemented/Incomplete
 
-## Witch
-affiliation: villagers
-appears to be: villager
-ability: can protect one player per match, and kill one player per match, and can see who the werewolves targeted
-
 ## Hunter
 affiliation: villagers
 appears to be: villager
@@ -47,3 +42,8 @@ ability: can protect one player every night (including themselves); cannot prote
 affiliation: villagers
 appears to be: villager
 ability: dies automatically in night n + 1, where n is the number of werewolves alive
+
+## Witch
+affiliation: villagers
+appears to be: villager
+ability: can protect one player per match, and kill one player per match, and can see who the werewolves targeted
