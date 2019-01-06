@@ -1,7 +1,8 @@
 const mix = require('laravel-mix')
 const path = require('path')
 
-mix.js('js/app.js', 'public/js')
+mix.setPublicPath('./public')
+.js('js/app.js', 'public/js')
 .extract()
 .stylus('stylus/app.styl', 'public/css')
 .webpackConfig({
@@ -12,6 +13,6 @@ mix.js('js/app.js', 'public/js')
 	},
 })
 
-if (mix.inProduction()) {
-	mix.version()
-}
+// if (mix.inProduction()) {
+// 	mix.version()
+// }

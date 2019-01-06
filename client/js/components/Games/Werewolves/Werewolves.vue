@@ -58,6 +58,11 @@
 					:mayor="mayor"
 					@log="log"
 				/>
+
+				<p v-if="dead">
+					You have already died.
+					Please remain quiet, and let the remaining players complete the match.
+				</p>
 			</div>
 
 			<div class="log">
@@ -85,6 +90,9 @@ import PgDaytimeMayor from './Actions/Daytime/Mayor'
 import PgDaytimeAccusations from './Actions/Daytime/Accusations'
 import PgDaytimeVoting from './Actions/Daytime/Voting'
 import PgMayorChooseSuccessor from './Actions/Mayor/ChooseSuccessor'
+import PgSpyChoose from './Actions/Spy/Choose'
+import PgSpyResult from './Actions/Spy/Result'
+import PgProtectorChoose from './Actions/Protector/Choose'
 
 export default {
 	components: {
@@ -104,6 +112,11 @@ export default {
 		PgDaytimeVoting,
 
 		PgMayorChooseSuccessor,
+
+		PgSpyChoose,
+		PgSpyResult,
+
+		PgProtectorChoose,
 	},
 
 	props: {
@@ -151,6 +164,7 @@ export default {
 
 		addEventListeners() {
 			Connection.on('action', this.onAction)
+			.on('clear action', this.onClearAction)
 			.on('players', this.onPlayers)
 			.on('log', this.log)
 			.on('phase', this.onPhase)
@@ -167,6 +181,11 @@ export default {
 		onAction({ view, data }) {
 			this.actionData = data
 			this.view = view.replace(/ /gu, '-')
+		},
+
+		onClearAction() {
+			this.actionData = null
+			this.view = null
 		},
 
 		onPhase({ phase }) {

@@ -2,7 +2,7 @@
 	"private": true,
 	"main": "app.ts",
 	"scripts": {
-		"dev": "concurrently --kill-others --names \"tsc,node,mix\" -c \"blue,green,orange\" \"npx tsc --noEmit --pretty --watch\" \"npx nodemon app.ts --exec babel-node --extensions '.ts,.tsx' app.ts\" \"cd client && yarn run watch\"",
+		"dev": "concurrently --kill-others --names \"mix,tsc,node\" -c \"yellow,blue,green\" \"cd client && yarn run watch\" \"npx tsc --noEmit --pretty --watch\" \"npx nodemon app.ts --exec babel-node --extensions '.ts,.tsx' app.ts\"",
 		"typecheck": "npx tsc --noEmit --pretty",
 		"build": "npx tsc --noEmit --pretty && npx babel --extensions '.ts,.tsx' --source-maps --out-dir dist lib && cd client && yarn run production",
 		"start": "node --require source-map-support/register dist/app.js"

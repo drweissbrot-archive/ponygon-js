@@ -10,14 +10,14 @@ import VictimsObject from './Contracts/VictimsObject'
 import { info, randomNumber, after } from 'helpers'
 
 const defaultRoles = {
-	amor: 1,
-	spy: 3,
-	// witch: 3,
-	// hunter: 3,
-	// protector: 3,
-	// investigator: 3,
+	// amor: 1,
+	// spy: 3,
+	// witch: 3, // TODO
+	// hunter: 3, // TODO
+	protector: 1,
+	// investigator: 3, // TODO
 	// lycanthrope: 3,
-	// elder: 3,
+	elder: 3,
 }
 
 const unfriendlyRoles = [
@@ -42,6 +42,8 @@ export default class Werewolves extends Game {
 
 	protected winner?: string
 
+	protected protected: Player[]
+
 	public constructor(lobby: Lobby) {
 		super(lobby)
 
@@ -54,6 +56,7 @@ export default class Werewolves extends Game {
 		this.resetVictims()
 		this.assignRoles()
 		this.emitRoles()
+		this.resetProtected()
 
 		this.phase = {
 			night: true,
@@ -82,18 +85,22 @@ export default class Werewolves extends Game {
 	}
 
 	protected async nextRound() : Promise<any> {
-		this.speakingAllowed(false)
+		this.resetProtected()
+		.speakingAllowed(false)
 		.increaseRound()
 		.emitPhase()
 
 		await this.runNight()
+
+		this.killEldersIfAppropriate()
 
 		let deaths = this.handleDeaths()
 		if (this.matchHasClinched()) return
 
 		await this.handleMayorDeath(deaths)
 
-		this.speakingAllowed(true)
+		this.resetProtected()
+		.speakingAllowed(true)
 
 		await this.runDay(deaths)
 
@@ -133,6 +140,8 @@ export default class Werewolves extends Game {
 	}
 
 	protected getWerewolfCount() : number {
+		return 1 // TODO
+
 		if (this.lobby.players.length <= 4) return 1
 		if (this.lobby.players.length <= 7) return 2
 		if (this.lobby.players.length <= 11) return 3
@@ -243,7 +252,7 @@ export default class Werewolves extends Game {
 							view: 'spy result',
 							data: {
 								friendly,
-								target: target.forPublic,
+								player: target.forPublic,
 							},
 						})
 
@@ -255,7 +264,33 @@ export default class Werewolves extends Game {
 			}
 		}
 
-		// TODO protector
+		// protector
+		if (this.anyPlayersAre('protector')) {
+			for (const protector of this.playersOfRole('protector')) {
+				promises.push(new Promise((resolve, reject) => {
+					const protectedLastNight = protector.gameData.get('protectedLastNight')
+
+					protector.emit('action', {
+						view: 'protector choose',
+						data: {
+							protectedLastNight: protectedLastNight ? protectedLastNight.forPublic : null,
+						},
+					})
+					.once('protector choice', ({ player: targetId }: { player: string }) => {
+						const target = this.getPlayerById(targetId)
+
+						if (! target || protector.gameData.get('protectedLastNight') === target) return resolve()
+
+						protector.gameData.set('protectedLastNight', target)
+
+						this.protected.push(target)
+
+						resolve()
+					})
+				}))
+			}
+		}
+
 		// TODO investigator
 
 		return Promise.all(promises)
@@ -567,7 +602,14 @@ export default class Werewolves extends Game {
 			village: null,
 			werewolves: null,
 			witches: [],
+			elders: [],
 		}
+
+		return this
+	}
+
+	protected resetProtected() : this {
+		this.protected = []
 
 		return this
 	}
@@ -575,13 +617,13 @@ export default class Werewolves extends Game {
 	protected handleDeaths() : Player[] {
 		let deaths: Player[] = []
 
-		// handle werewolf victim
+		// add werewolf victim
 		if (this.victims.werewolves) deaths.push(this.victims.werewolves)
 
-		// handle witch victims
+		// add witch victims
 		deaths.push(...this.victims.witches)
 
-		// handle village victim
+		// add village victim
 		if (this.victims.village) deaths.push(this.victims.village)
 
 		// handle lovers
@@ -589,7 +631,13 @@ export default class Werewolves extends Game {
 			deaths.push(...this.inLove)
 		}
 
-		deaths = _(deaths).uniq()
+		// remove any protected victims
+		deaths = deaths.filter((player) => ! this.protected.includes(player))
+
+		// add elders
+		deaths.push(...this.victims.elders)
+
+		deaths = _(deaths).uniq().value()
 
 		// kill players
 		for (const player of deaths) {
@@ -605,7 +653,9 @@ export default class Werewolves extends Game {
 			this.playersByRole.set(role, playersOfRole.filter((player) => ! player.gameData.get('dead')))
 		}
 
-		this.lobby.emit('log', deaths.map((player) => player.name).join(', ') + ' died.')
+		if (deaths.length) this.lobby.emit('log', deaths.map((player) => player.name).join(', ') + ' died.')
+		else this.lobby.emit('log', 'No-one died.')
+
 		this.lobby.emitPlayers()
 		this.resetVictims()
 
@@ -620,7 +670,7 @@ export default class Werewolves extends Game {
 
 		return new Promise((resolve, reject) => {
 			deadMayor.once('mayor choice', ({ player: playerId }: { player: string }) => {
-				deadMayor.emit('action', { view: null })
+				deadMayor.emit('clear action')
 
 				let target = this.getPlayerById(playerId)
 				if (! target) target = this.getRandomPlayer()
@@ -729,6 +779,14 @@ export default class Werewolves extends Game {
 
 		if (wasElected) this.lobby.emit('log', `${mayor.name} was elected mayor.`)
 		else this.lobby.emit('log', `${mayor.name} was chosen as new mayor.`)
+
+		return this
+	}
+
+	protected killEldersIfAppropriate() : this {
+		if (this.phase.round === this.playersOfRole('werewolf').length + 1) {
+			this.victims.elders = this.playersOfRole('elder')
+		}
 
 		return this
 	}

@@ -26,7 +26,7 @@ export default {
 
 	computed: {
 		names() {
-			return this.data.deaths.join(', ')
+			return this.data.deaths.map((player) => player.name).join(', ')
 		},
 	},
 }
