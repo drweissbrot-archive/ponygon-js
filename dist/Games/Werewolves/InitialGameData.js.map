@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/Games/Werewolves/InitialGameData.ts"],"names":["dead","mayor"],"mappings":";;;;;;eAAe;AACdA,EAAAA,IAAI,EAAE,KADQ;AAEdC,EAAAA,KAAK,EAAE;AAFO,C","sourcesContent":["export default {\n\tdead: false,\n\tmayor: false,\n}\n"],"file":"InitialGameData.js"}

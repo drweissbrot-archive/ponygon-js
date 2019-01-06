@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/Contracts/SocketIoResolver.ts"],"names":["SocketIoResolver"],"mappings":";;;;;;eAEeA,gB","sourcesContent":["type SocketIoResolver = (data?: any) => any\n\nexport default SocketIoResolver\n"],"file":"SocketIoResolver.js"}

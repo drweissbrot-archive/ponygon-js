@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/pg.ts"],"names":["pg","Ponygon"],"mappings":";;;;;;;AAAA;;;;AAEA,MAAMA,EAAE,GAAG,IAAIC,gBAAJ,EAAX;eAEeD,E","sourcesContent":["import Ponygon from './Ponygon'\n\nconst pg = new Ponygon()\n\nexport default pg\n"],"file":"pg.js"}

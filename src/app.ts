@@ -11,8 +11,8 @@ const io = socketIo(server)
 
 app.use(BodyParser.urlencoded({ extended: true }))
 
-import addStaticFileRoutes from './src/routing/static-files'
-import addPrimaryEvents from './src/PrimaryEvents/Add'
+import addStaticFileRoutes from './routing/static-files'
+import addPrimaryEvents from './PrimaryEvents/Add'
 
 addStaticFileRoutes(app, __dirname)
 
