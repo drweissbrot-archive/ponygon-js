@@ -4,21 +4,23 @@
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,700">
 
 		<div class="player-list">
-			<!-- TODO microphone icon or something -->
-			<div class="speaking-allowed --true" v-show="! dead && speakingAllowed">
-				You may talk now.
-			</div>
+			<div class="meta">
+				<!-- TODO microphone icon or something -->
+				<div class="speaking-allowed --true" v-show="! dead && speakingAllowed">
+					You may talk now.
+				</div>
 
-			<div class="speaking-allowed --false" v-show="dead || ! speakingAllowed">
-				Please do not talk now.
-			</div>
+				<div class="speaking-allowed --false" v-show="dead || ! speakingAllowed">
+					Please do not talk now.
+				</div>
 
-			<div class="you-are" v-if="ownRole">
-				You are a {{ ownRole }}.
-			</div>
+				<div class="you-are" v-if="ownRole">
+					You are a {{ ownRole }}.
+				</div>
 
-			<div class="mayor" v-if="mayor">
-				You are mayor.
+				<div class="mayor" v-if="mayor">
+					You are the mayor.
+				</div>
 			</div>
 
 			<div class="players">
@@ -59,7 +61,7 @@
 					@log="log"
 				/>
 
-				<p v-if="dead">
+				<p v-if="dead && view !== 'gg-wp'">
 					You have already died.
 					Please remain quiet, and let the remaining players complete the match.
 				</p>

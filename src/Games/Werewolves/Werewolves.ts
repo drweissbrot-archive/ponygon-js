@@ -140,8 +140,6 @@ export default class Werewolves extends Game {
 	}
 
 	protected getWerewolfCount() : number {
-		return 1 // TODO
-
 		if (this.lobby.players.length <= 4) return 1
 		if (this.lobby.players.length <= 7) return 2
 		if (this.lobby.players.length <= 11) return 3
@@ -667,14 +665,13 @@ export default class Werewolves extends Game {
 		// add village victim
 		if (this.victims.village) deaths.push(this.victims.village)
 
-		// TODO lovers after removing protected, eh?
+		// remove any protected victims
+		deaths = deaths.filter((player) => ! this.protected.includes(player))
+
 		// handle lovers
 		if (this.inLove && (deaths.includes(this.inLove[0]) || deaths.includes(this.inLove[1]))) {
 			deaths.push(...this.inLove)
 		}
-
-		// remove any protected victims
-		deaths = deaths.filter((player) => ! this.protected.includes(player))
 
 		// add elders
 		deaths.push(...this.victims.elders)

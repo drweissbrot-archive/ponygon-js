@@ -10,11 +10,11 @@
 
 		<!-- TODO heart between players when lovers win -->
 		<div class="players --winners">
-			<gg-wp-player v-for="(player, index) in this.data.winners" :key="index" :player="player" />
+			<gg-wp-player v-for="(player, index) in data.winners" :key="index" :player="player" />
 		</div>
 
 		<div class="players --losers">
-			<gg-wp-player v-for="(player, index) in this.data.losers" :key="index" :player="player" />
+			<gg-wp-player v-for="(player, index) in data.losers" :key="index" :player="player" />
 		</div>
 
 		<p>

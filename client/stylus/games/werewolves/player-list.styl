@@ -4,40 +4,42 @@
 	padding 4rem
 }
 
-.speaking-allowed {
-	&.--true {
-		background green
-		color #000
+.meta {
+	.speaking-allowed,
+	.you-are,
+	.mayor,
+	.player {
+		card()
+		marginBottomIfNotLast()
 	}
 
-	&.--false {
-		background red
-		color #000
-	}
-}
+	.speaking-allowed {
+		&.--true {
+			background green
+			color #000
+		}
 
-.speaking-allowed,
-.you-are,
-.mayor,
-.player {
-	card()
-	marginBottomIfNotLast()
+		&.--false {
+			background red
+			color #000
+		}
+	}
 }
 
 .players {
 	border-top 1px solid #999
-}
 
-.player {
-	&.--dead {
-		opacity .7
-	}
+	.player {
+		&.--dead {
+			opacity .7
+		}
 
-	display flex
-	justify-content space-between
-	margin-top 2rem
+		display flex
+		justify-content space-between
+		margin-top 2rem
 
-	.name {
-		font-weight bold
+		.name {
+			font-weight bold
+		}
 	}
 }
