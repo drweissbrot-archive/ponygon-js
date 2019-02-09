@@ -326,7 +326,7 @@ class Werewolves extends _Game.default {
 
             resolve();
           }
-        });
+        }).removeOnceResolved();
       } // TODO force resolve after some time
 
     });
@@ -435,7 +435,7 @@ class Werewolves extends _Game.default {
           if (!mayor) return;
           this.setMayor(mayor);
           resolve();
-        });
+        }).removeOnceResolved();
       }
     });
   }
@@ -459,7 +459,7 @@ class Werewolves extends _Game.default {
         if (!choicesForTarget) return;
         choicesForTarget.push(player);
         this.emitAccusations(accusations);
-      });
+      }).removeOnceResolved();
     }
 
     return new Promise((resolve, reject) => {
@@ -507,7 +507,7 @@ class Werewolves extends _Game.default {
           if (!victim) return;
           this.victims.village = victim;
           resolve();
-        });
+        }).removeOnceResolved();
       }
     });
   }

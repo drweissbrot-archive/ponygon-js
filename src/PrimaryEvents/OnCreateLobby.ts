@@ -7,6 +7,9 @@ export default function ({ name }: { name: string }, resolve: SocketIoResolver) 
 	info('L+', this.id, 'wants to create lobby')
 
 	const player = pg.createPlayer(name, this)
+
+	player.once('ayy', () => {})
+
 	const lobby = pg.createLobby(player)
 
 	resolve({

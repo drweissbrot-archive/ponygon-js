@@ -3,6 +3,7 @@ import crypto from 'crypto'
 
 import AuthInfo from './Contracts/AuthInfo'
 import Lobby from './Lobby'
+import PlayerEventRemover from './PlayerEventRemover'
 import GameData from './Games/GameData'
 
 import { info } from 'helpers'
@@ -70,14 +71,20 @@ export default class Player {
 		return this
 	}
 
-	public on(event: string, handler?: any) : this {
+	public on(event: string, handler?: any) : PlayerEventRemover {
 		this.socket.on(event, handler)
 
-		return this
+		return new PlayerEventRemover(this, handler)
 	}
 
 	public once(event: string, handler?: any) : this {
 		this.socket.once(event, handler)
+
+		return this
+	}
+
+	public off(event: string, handler?: any) : this {
+		this.socket.off(event, handler)
 
 		return this
 	}

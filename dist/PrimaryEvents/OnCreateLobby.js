@@ -19,6 +19,8 @@ function _default({
 
   const player = _pg.default.createPlayer(name, this);
 
+  player.once('ayy', () => {});
+
   const lobby = _pg.default.createLobby(player);
 
   resolve({

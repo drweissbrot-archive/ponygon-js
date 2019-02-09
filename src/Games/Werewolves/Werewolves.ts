@@ -377,7 +377,7 @@ export default class Werewolves extends Game {
 
 						resolve()
 					}
-				})
+				}).removeOnceResolved()
 			}
 
 			// TODO force resolve after some time
@@ -497,7 +497,7 @@ export default class Werewolves extends Game {
 					this.setMayor(mayor)
 
 					resolve()
-				})
+				}).removeOnceResolved()
 			}
 		})
 	}
@@ -524,7 +524,7 @@ export default class Werewolves extends Game {
 				choicesForTarget.push(player)
 
 				this.emitAccusations(accusations)
-			})
+			}).removeOnceResolved()
 		}
 
 		return new Promise((resolve, reject) => {
@@ -578,7 +578,7 @@ export default class Werewolves extends Game {
 					this.victims.village = victim
 
 					resolve()
-				})
+				}).removeOnceResolved()
 			}
 		})
 	}

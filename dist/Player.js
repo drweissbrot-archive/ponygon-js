@@ -7,6 +7,8 @@ exports.default = void 0;
 
 var _crypto = _interopRequireDefault(require("crypto"));
 
+var _PlayerEventRemover = _interopRequireDefault(require("./PlayerEventRemover"));
+
 var _GameData = _interopRequireDefault(require("./Games/GameData"));
 
 var _helpers = require("./helpers/helpers");
@@ -57,11 +59,16 @@ class Player {
 
   on(event, handler) {
     this.socket.on(event, handler);
-    return this;
+    return new _PlayerEventRemover.default(this, handler);
   }
 
   once(event, handler) {
     this.socket.once(event, handler);
+    return this;
+  }
+
+  off(event, handler) {
+    this.socket.off(event, handler);
     return this;
   }
 

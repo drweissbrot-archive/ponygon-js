@@ -4,7 +4,7 @@
 	"scripts": {
 		"dev": "concurrently --kill-others --names \"mix,tsc,node\" -c \"yellow,blue,green\" \"cd client && yarn run watch\" \"npx tsc --noEmit --pretty --watch\" \"npx nodemon src/app.ts --exec babel-node --extensions '.ts,.tsx'\"",
 		"typecheck": "npx tsc --noEmit --pretty",
-		"build": "npx tsc --noEmit --pretty && npx babel --extensions '.ts,.tsx' --source-maps --out-dir dist src && cd client && yarn run production",
+		"build": "npx tsc --noEmit --pretty && npx babel --extensions '.ts,.tsx' --source-maps --out-dir dist src",
 		"start": "node --require source-map-support/register dist/app.js"
 	},
 	"dependencies": {

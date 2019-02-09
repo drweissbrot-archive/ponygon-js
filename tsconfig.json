@@ -6,7 +6,7 @@
 	],
 
 	"exclude": [
-		"node_modules", "@types", "tmp", "build", "dist"
+		"node_modules", "@types", "tmp", "build", "dist", "src/client"
 	],
 
 	"compilerOptions": {
