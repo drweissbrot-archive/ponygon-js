@@ -1,0 +1,51 @@
+.lobby {
+	padding 4rem 8rem
+
+	display grid
+	grid-template-rows auto auto
+	grid-template-columns 1fr 2rem 1fr 2rem 1fr
+	grid-template-areas 'title title title title title' 'players 0 chat 1 games'
+
+	h2 {
+		margin-bottom 2rem
+	}
+
+	.title {
+		grid-area title
+
+		display flex
+		flex-wrap wrap
+		align-items center
+		justify-content space-between
+
+		code {
+			flsize(2rem)
+		}
+	}
+
+	.player-list {
+		grid-area players
+
+		.player {
+			card()
+			marginBottomIfNotLast()
+		}
+	}
+
+	.chat {
+		grid-area chat
+	}
+
+	.game-list {
+		grid-area games
+
+		.game {
+			card()
+			marginBottomIfNotLast()
+
+			display flex
+			align-items center
+			justify-content space-between
+		}
+	}
+}

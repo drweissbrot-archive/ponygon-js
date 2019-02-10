@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"target": "esNext",
+		"strict": true,
+		"module": "esNext",
+		"moduleResolution": "node",
+		"experimentalDecorators": true,
+
+		"baseUrl": "./js/",
+		"paths": {
+			"~Components/*": [ "Components/*" ],
+			"~Connection": [ "Connection" ],
+			"~Mixins/*": [ "Mixins/*" ],
+		}
+	},
+
+	"exclude": [
+		"node_modules", "vendor"
+	]
+}
